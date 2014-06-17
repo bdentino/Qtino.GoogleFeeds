@@ -17,10 +17,12 @@ QtGoogleFeedApi::QtGoogleFeedApi(GoogleApiVersion version, QObject* parent)
     qRegisterMetaType<GoogleFeedQuery*>();
     qRegisterMetaType<GoogleFeedQueryResult*>();
     qRegisterMetaType<GoogleFeedChannel*>();
+    qRegisterMetaType<GoogleFeedItem*>();
 
     qmlRegisterType<GoogleFeedQuery>();
     qmlRegisterType<GoogleFeedQueryResult>();
     qmlRegisterType<GoogleFeedChannel>();
+    qmlRegisterType<GoogleFeedItem>();
 }
 
 GoogleFeedQuery* QtGoogleFeedApi::getQueryObject()
@@ -73,6 +75,9 @@ QList<GoogleFeedQueryResult*> QtGoogleFeedApi::parseFindResponse(QJsonObject res
     foreach (QJsonValue value, entries)
     {
         QJsonObject entry = value.toObject();
+
+        //Instead of having a builder, I should just have a constructor that takes a QJsonObject
+        // (like GoogleFeedItem)
         GoogleFeedQueryResultBuilder builder(this);
 
         builder.setUrl(QUrl(entry["url"].toString()));
@@ -89,6 +94,8 @@ GoogleFeedChannel* QtGoogleFeedApi::parseFeedChannel(QJsonObject response, QStri
 {
     if (parseError == 0) { QString tempError; parseError = &tempError; }
 
+    //Same thing here...should rework this so GoogleFeedChannel takes a JSON object
+    // and builds itself
     GoogleFeedChannel* channel = new GoogleFeedChannel(this);
     QJsonObject feed = getResponseData(response, parseError)["feed"].toObject();
 
@@ -99,15 +106,18 @@ GoogleFeedChannel* QtGoogleFeedApi::parseFeedChannel(QJsonObject response, QStri
     channel->m_title = feed["title"].toString();
     channel->m_description = feed["description"].toString();
 
-    channel->m_items = parseFeedItems(feed["entries"].toArray(), parseError);
+    channel->m_items = parseFeedItems(channel, feed["entries"].toArray());
     return channel;
 }
 
-QList<GoogleFeedItem*> QtGoogleFeedApi::parseFeedItems(QJsonArray items, QString* parseError)
+QList<GoogleFeedItem*> QtGoogleFeedApi::parseFeedItems(GoogleFeedChannel* channel, QJsonArray items)
 {
-    if (parseError == 0) { QString tempError; parseError = &tempError; }
-    qDebug() << items;
-    return QList<GoogleFeedItem*>();
+    QList<GoogleFeedItem*> feedItems;
+    foreach (QJsonValue item, items)
+    {
+        feedItems << new GoogleFeedItem(channel, item.toObject());
+    }
+    return feedItems;
 }
 
 GoogleFeedChannel* QtGoogleFeedApi::loadFeed(QUrl url)

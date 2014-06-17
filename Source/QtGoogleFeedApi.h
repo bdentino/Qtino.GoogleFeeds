@@ -49,7 +49,7 @@ protected:
 
     QList<GoogleFeedQueryResult*> parseFindResponse(QJsonObject response, QString* parseError = 0);
     GoogleFeedChannel* parseFeedChannel(QJsonObject response, QString* parseError = 0);
-    QList<GoogleFeedItem*> parseFeedItems(QJsonArray items, QString* parseError = 0);
+    QList<GoogleFeedItem*> parseFeedItems(GoogleFeedChannel* channel, QJsonArray items);
 
     QJsonObject getResponseData(QJsonObject response, QString* parseError = 0);
 

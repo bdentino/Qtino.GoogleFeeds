@@ -32,6 +32,7 @@ class QTGOOGLEFEEDSSHARED_EXPORT GoogleFeedChannel : public QObject
 
 protected:
     explicit GoogleFeedChannel(QtGoogleFeedApi* api);
+    void copyAndDelete(GoogleFeedChannel* copy);
 
 public:
     QUrl feedUrl();
@@ -46,8 +47,6 @@ public:
     QQmlListProperty<GoogleFeedItem> itemsProperty();
 
     QList<GoogleFeedItem*> items();
-
-    GoogleFeedChannel& operator=(GoogleFeedChannel& copy);
 
 signals:
     void loadingChanged();

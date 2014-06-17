@@ -32,9 +32,8 @@ void GoogleFeedChannelLoader::onResponseReceived(QJsonObject response)
     GoogleFeedChannel* tempChannel = m_api->parseFeedChannel(response, &parseError);
     if (parseError == "")
     {
-        *m_channel = *tempChannel;
+        m_channel->copyAndDelete(tempChannel);
     }
-    tempChannel->deleteLater();
     m_channel->m_loaded = true;
     m_channel->loadingChanged();
     emit loadingChanged();

@@ -96,6 +96,7 @@ Window {
                 if (currentIndex !== -1)
                     currentFeed = resultsList.currentItem.queryItem.feed();
             }
+            highlightFollowsCurrentItem: false;
         }
     }
 
@@ -103,6 +104,7 @@ Window {
         id: feedView
         anchors.fill: parent
         visible: resultsList.currentIndex != -1
+        MouseArea { id: clickthruBlocker; anchors.fill: parent }
 
         Rectangle {
             id: close
@@ -140,6 +142,90 @@ Window {
             color: 'darkgrey'
             font.italic: true
             text: currentFeed.description
+        }
+
+        ListView {
+            id: itemsList
+            anchors.top: description.bottom
+            anchors.bottom: siteLink.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 20
+            model: currentFeed.items
+            spacing: 10
+            delegate: Rectangle {
+                width: parent.width
+                height: childrenRect.height
+                color: 'lightgrey'
+                radius: 5
+                Column {
+                    width: parent.width
+                    height: childrenRect.height
+                    spacing: 5
+                    Text {
+                        id: itemTitle
+                        font.pixelSize: 24
+                        text: modelData.title
+                        elide: Text.ElideRight
+                        height: paintedHeight
+                        width: parent.width
+                    }
+                    Text {
+                        id: itemDate
+                        font.pixelSize: 12
+                        text: modelData.publishedDate
+                        font.italic: true
+                        color: 'darkblue'
+                        height: paintedHeight
+                        width: parent.width
+                    }
+                    Text {
+                        id: itemContent
+                        width: parent.width
+                        maximumLineCount: 4
+                        elide: Text.ElideRight
+                        font.pixelSize: 10
+                        text: modelData.contentSnippet
+                        wrapMode: Text.WordWrap
+                    }
+                    Row {
+                        id: categories
+                        height: childrenRect.height
+                        width: parent.width
+                        spacing: 5
+                        Repeater {
+                            model: modelData.categories
+                            delegate: Text {
+                                text: modelData + ","
+                                height: paintedHeight
+                                width: paintedWidth
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                        }
+                    }
+                    Text {
+                        id: itemLink
+                        height: paintedHeight
+                        width: parent.width
+                        font.pixelSize: 12
+                        text: modelData.link
+                        elide: Text.ElideRight
+                        color: 'blue'
+                        font.underline: true
+                    }
+                    Text {
+                        id: itemMediaGroups
+                        font.pixelSize: 12
+                        text: "MediaGroups Count: " + modelData.mediaGroups.length
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: resultsList.currentIndex = index
+                }
+            }
         }
 
         Text {

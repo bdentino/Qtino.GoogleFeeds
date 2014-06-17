@@ -12,19 +12,23 @@ GoogleFeedChannel::GoogleFeedChannel(QtGoogleFeedApi* api)
 
 }
 
-GoogleFeedChannel& GoogleFeedChannel::operator =(GoogleFeedChannel& copy)
+void GoogleFeedChannel::copyAndDelete(GoogleFeedChannel* copy)
 {
-    m_feedUrl = copy.m_feedUrl;
-    m_title = copy.m_title;
-    m_author = copy.m_author;
-    m_description = copy.m_description;
-    m_type = copy.m_type;
+    m_feedUrl = copy->m_feedUrl;
+    m_title = copy->m_title;
+    m_author = copy->m_author;
+    m_description = copy->m_description;
+    m_type = copy->m_type;
 
+    qDeleteAll(m_items);
     m_items.clear();
-    m_items.append(copy.m_items);
-    emit loadingChanged();
+
+    m_items.append(copy->m_items);
+    foreach (GoogleFeedItem* item, m_items)
+        item->setChannel(this);
     emit itemsChanged();
-    return *this;
+
+    copy->deleteLater();
 }
 
 QUrl GoogleFeedChannel::feedUrl()
