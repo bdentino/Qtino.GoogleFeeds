@@ -8,13 +8,19 @@ RESOURCES += qml.qrc
 
 INCLUDEPATH += $$PWD/../../Source
 
-LIBS += -L../../Source -lQtGoogleFeeds
+installPath = $$[QT_INSTALL_QML]/Qtino/GoogleFeeds
+
+iphonesimulator {
+    LIBS += -L$$installPath -lQtGoogleFeeds_iphonesimulator
+} else {
+    LIBS += -L$$installPath -lQtGoogleFeeds
+}
 
 macx {
-    PRE_TARGETDEPS += ../../Source/libQtGoogleFeeds.dylib
+    PRE_TARGETDEPS += $$installPath/libQtGoogleFeeds.dylib
 
     sharedLibs.path = Contents/MacOS
-    sharedLibs.files += $$OUT_PWD/../../Source/libQtGoogleFeeds.1.dylib
+    sharedLibs.files += $$installPath/libQtGoogleFeeds.dylib
 
     for(lib, sharedLibs.files) {
         QMAKE_POST_LINK += "cp $${lib} $${TARGET}.app/$${sharedLibs.path}/;"

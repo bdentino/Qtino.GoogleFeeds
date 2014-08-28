@@ -14,7 +14,6 @@ class GoogleFeedChannel;
 class QTGOOGLEFEEDSSHARED_EXPORT GoogleFeedItem : public QObject
 {
     Q_OBJECT
-
     Q_PROPERTY(QString title READ title CONSTANT)
     Q_PROPERTY(QUrl link READ link CONSTANT)
     Q_PROPERTY(QString htmlContent READ htmlContent CONSTANT)
@@ -33,8 +32,10 @@ class QTGOOGLEFEEDSSHARED_EXPORT GoogleFeedItem : public QObject
     Q_PROPERTY(QVariantList mediaGroups READ mediaGroups CONSTANT)
 
 public:
+
     QString title() const { return m_title; }
     QUrl link() const { return m_link; }
+    QString author() const { return m_author; }
     QString htmlContent() const { return m_htmlContent; }
     QString contentSnippet() const { return m_contentSnippet; }
     QDateTime publishedDate() const { return m_publishedDate; }
@@ -51,6 +52,7 @@ protected:
 private:
     QString retrieveTitle(QJsonObject& item);
     QUrl retrieveLink(QJsonObject& item);
+    QString retrieveAuthor(QJsonObject& item);
     QString retrieveContent(QJsonObject& item);
     QString retrieveSnippet(QJsonObject& item);
     QDateTime retrievePublishedDate(QJsonObject& item);
@@ -62,6 +64,7 @@ private:
     GoogleFeedChannel* m_channel;
     QString m_title;
     QUrl m_link;
+    QString m_author;
     QString m_htmlContent;
     QString m_contentSnippet;
     QDateTime m_publishedDate;

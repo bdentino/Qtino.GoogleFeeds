@@ -21,6 +21,18 @@ GoogleFeedQuery::GoogleFeedQuery(GoogleApiVersion version, QObject* parent)
     connect(this, SIGNAL(queryChanged()), this, SLOT(refresh()));
 }
 
+QtGoogleFeedApi* GoogleFeedQuery::api() { return m_api; }
+
+void GoogleFeedQuery::setApi(QtGoogleFeedApi* api)
+{
+    if (m_api) {
+        qWarning("Cannot change GoogleFeed API after initialization");
+        return;
+    }
+    m_api = api;
+    refresh();
+}
+
 QString GoogleFeedQuery::query()
 {
     return m_query;
@@ -45,6 +57,7 @@ const QList<GoogleFeedQueryResult*> GoogleFeedQuery::results()
 
 void GoogleFeedQuery::refresh()
 {
+    if (!m_api) return;
     if (m_request) {
         disconnect(m_request);
         m_request->disconnect(this);
@@ -60,6 +73,5 @@ void GoogleFeedQuery::refresh()
 void GoogleFeedQuery::onResponseReceived(QJsonObject response)
 {
     m_results = m_api->parseFindResponse(response);
-    qDebug() << m_results.count();
     emit resultsChanged();
 }

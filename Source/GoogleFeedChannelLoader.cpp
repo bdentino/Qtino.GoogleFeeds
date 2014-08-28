@@ -9,7 +9,7 @@ GoogleFeedChannelLoader::GoogleFeedChannelLoader(QtGoogleFeedApi* api, GoogleFee
     m_api(api),
     m_channel(channel)
 {
-    m_request = m_api->getLoadRequest(m_channel->feedUrl());
+    m_request = m_api->getLoadRequest(m_channel->feedUrl(), m_channel->maxItems());
     connect(m_request, SIGNAL(responseReady(QJsonObject)),
             this, SLOT(onResponseReceived(QJsonObject)));
     connect(m_request, SIGNAL(requestError(QNetworkReply::NetworkError, QString)),

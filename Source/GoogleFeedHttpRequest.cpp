@@ -54,6 +54,7 @@ void GoogleFeedHttpRequest::setPendingReply(QNetworkReply* reply)
     {
         m_pendingReply->disconnect(this);
         m_pendingReply->deleteLater();
+        m_pendingReply = NULL;
     }
     m_pendingReply = reply;
     emit loadingChanged(m_pendingReply->isRunning());
@@ -66,8 +67,7 @@ void GoogleFeedHttpRequest::redirectRequest()
 
     QUrl redirectionTarget =
             reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-    qDebug("GoogleFeeds Request Info: Got Redirect Request to %s",
-           qPrintable(redirectionTarget.toString()));
+
     if (redirectionTarget.isValid())
     {
         get(redirectionTarget);

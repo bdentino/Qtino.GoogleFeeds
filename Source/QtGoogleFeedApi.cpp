@@ -10,6 +10,20 @@
 
 const QString QtGoogleFeedApi::BaseUrl = "https://ajax.googleapis.com/ajax/services/feed";
 
+QtGoogleFeedApi::QtGoogleFeedApi(QObject* parent)
+    : QObject(parent)
+{
+    qRegisterMetaType<GoogleFeedQuery*>();
+    qRegisterMetaType<GoogleFeedQueryResult*>();
+    qRegisterMetaType<GoogleFeedChannel*>();
+    qRegisterMetaType<GoogleFeedItem*>();
+
+    qmlRegisterType<GoogleFeedQuery>();
+    qmlRegisterType<GoogleFeedQueryResult>();
+    qmlRegisterType<GoogleFeedChannel>();
+    qmlRegisterType<GoogleFeedItem>();
+}
+
 QtGoogleFeedApi::QtGoogleFeedApi(GoogleApiVersion version, QObject* parent)
     : QObject(parent),
       m_version(version)
@@ -56,10 +70,6 @@ QJsonObject QtGoogleFeedApi::getResponseData(QJsonObject response, QString* pars
     return response["responseData"].toObject();
 }
 
-// @info
-//   Putting this logic behind a function in the Api class so that versioning differences
-//   can be handled without having to change Query/Load objects
-
 //TODO: Separate class for Parsed result (allows managing error info)
 QList<GoogleFeedQueryResult*> QtGoogleFeedApi::parseFindResponse(QJsonObject response, QString* parseError)
 {
@@ -76,8 +86,8 @@ QList<GoogleFeedQueryResult*> QtGoogleFeedApi::parseFindResponse(QJsonObject res
     {
         QJsonObject entry = value.toObject();
 
-        //Instead of having a builder, I should just have a constructor that takes a QJsonObject
-        // (like GoogleFeedItem)
+        // TODO: Instead of having a builder, I should just have a constructor
+        // (or virtual function) that takes a QJsonObject... (like GoogleFeedItem)
         GoogleFeedQueryResultBuilder builder(this);
 
         builder.setUrl(QUrl(entry["url"].toString()));
@@ -94,8 +104,9 @@ GoogleFeedChannel* QtGoogleFeedApi::parseFeedChannel(QJsonObject response, QStri
 {
     if (parseError == 0) { QString tempError; parseError = &tempError; }
 
-    //Same thing here...should rework this so GoogleFeedChannel takes a JSON object
-    // and builds itself
+    // TODO: Same thing here...should rework this so GoogleFeedChannel takes a JSON object
+    // and builds itself...only problem is that the api interface returns a feed before it's fully
+    // loaded so I will still need a way of constructing it without knowing its properties yet
     GoogleFeedChannel* channel = new GoogleFeedChannel(this);
     QJsonObject feed = getResponseData(response, parseError)["feed"].toObject();
 
@@ -120,9 +131,10 @@ QList<GoogleFeedItem*> QtGoogleFeedApi::parseFeedItems(GoogleFeedChannel* channe
     return feedItems;
 }
 
-GoogleFeedChannel* QtGoogleFeedApi::loadFeed(QUrl url)
+GoogleFeedChannel* QtGoogleFeedApi::loadFeed(QUrl url, int maxItems)
 {
     GoogleFeedChannel* channel = new GoogleFeedChannel(this);
+    channel->setMaxItems(maxItems);
     channel->m_feedUrl = url;
     GoogleFeedChannelLoader* loader = new GoogleFeedChannelLoader(this, channel);
     connect(loader, SIGNAL(finishedLoading()), loader, SLOT(deleteLater()));
@@ -130,15 +142,26 @@ GoogleFeedChannel* QtGoogleFeedApi::loadFeed(QUrl url)
     return channel;
 }
 
-GoogleFeedHttpRequest* QtGoogleFeedApi::getLoadRequest(QUrl feedUrl)
+GoogleFeedHttpRequest* QtGoogleFeedApi::getLoadRequest(QUrl feedUrl, int maxItems)
 {
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("v", versionString());
-    urlQuery.addQueryItem("q", feedUrl.toString());
+    urlQuery.addQueryItem("q", QUrl::toPercentEncoding(feedUrl.toString()));
+    urlQuery.addQueryItem("num", QString("%1").arg(maxItems));
 
     QUrl url(QtGoogleFeedApi::BaseUrl + "/load");
     url.setQuery(urlQuery);
     return new GoogleFeedHttpRequest(url);
+}
+
+void QtGoogleFeedApi::setVersion(QString version)
+{
+    GoogleApiVersion defaultVersion;
+    if (m_version != defaultVersion) {
+        qWarning("Cannot change GoogleFeed API version after initialization.");
+        return;
+    }
+    m_version = GoogleApiVersion(version);
 }
 
 QString QtGoogleFeedApi::versionString()

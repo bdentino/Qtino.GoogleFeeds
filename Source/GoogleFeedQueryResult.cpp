@@ -28,6 +28,11 @@ QUrl GoogleFeedQueryResult::link() const
     return m_link;
 }
 
+QtGoogleFeedApi* GoogleFeedQueryResult::api()
+{
+    return m_api;
+}
+
 GoogleFeedChannel* GoogleFeedQueryResult::feed()
 {
     return m_api->loadFeed(m_url);

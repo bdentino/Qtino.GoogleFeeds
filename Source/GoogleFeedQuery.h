@@ -15,12 +15,16 @@ class QTGOOGLEFEEDSSHARED_EXPORT GoogleFeedQuery : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QtGoogleFeedApi* api READ api WRITE setApi)
     Q_PROPERTY(QString query READ query WRITE setQuery NOTIFY queryChanged)
     Q_PROPERTY(QQmlListProperty<GoogleFeedQueryResult> results READ qmlResults NOTIFY resultsChanged)
 
 public:
-    GoogleFeedQuery(QtGoogleFeedApi* api);
+    GoogleFeedQuery(QtGoogleFeedApi* api = 0);
     GoogleFeedQuery(GoogleApiVersion version, QObject* parent = 0);
+
+    QtGoogleFeedApi* api();
+    void setApi(QtGoogleFeedApi* api);
 
     QString query();
     void setQuery(QString query);

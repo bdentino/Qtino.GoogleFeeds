@@ -1,0 +1,6 @@
+#include "GoogleFeeds/QtGoogleFeeds_Global.h"
+#include "GoogleFeeds/QtGoogleFeedApi.h"
+#include "GoogleFeeds/GoogleFeedChannel.h"
+#include "GoogleFeeds/GoogleFeedItem.h"
+#include "GoogleFeeds/GoogleFeedQuery.h"
+#include "GoogleFeeds/GoogleFeedQueryResult.h"

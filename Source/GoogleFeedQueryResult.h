@@ -12,8 +12,7 @@ class QTGOOGLEFEEDSSHARED_EXPORT GoogleFeedQueryResult : public QObject
     friend class GoogleFeedQueryResultBuilder;
 
     Q_OBJECT
-
-    Q_PROPERTY(QUrl url READ url CONSTANT)
+    Q_PROPERTY(QUrl feedUrl READ url CONSTANT)
     Q_PROPERTY(QString title READ title CONSTANT)
     Q_PROPERTY(QString contentSnippet READ contentSnippet CONSTANT)
     Q_PROPERTY(QUrl link READ link CONSTANT)
@@ -23,6 +22,8 @@ public:
     QString title() const;
     QString contentSnippet() const;
     QUrl link() const;
+
+    QtGoogleFeedApi* api();
 
 protected:
     GoogleFeedQueryResult(QtGoogleFeedApi* api);

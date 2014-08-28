@@ -6,10 +6,23 @@
 GoogleFeedChannel::GoogleFeedChannel(QtGoogleFeedApi* api)
     : QObject(api),
       m_loaded(false),
+      m_maxItems(10),
       m_api(api),
       m_request(NULL)
 {
 
+}
+
+QtGoogleFeedApi* GoogleFeedChannel::api() { return m_api; }
+
+void GoogleFeedChannel::setApi(QtGoogleFeedApi* api)
+{
+    if (m_api) {
+        qWarning("Cannot change GoogleFeed API after initialization");
+        return;
+    }
+    m_api = api;
+    refresh();
 }
 
 void GoogleFeedChannel::copyAndDelete(GoogleFeedChannel* copy)
@@ -20,15 +33,16 @@ void GoogleFeedChannel::copyAndDelete(GoogleFeedChannel* copy)
     m_description = copy->m_description;
     m_type = copy->m_type;
 
-    qDeleteAll(m_items);
+    foreach (GoogleFeedItem* item, m_items)
+        item->deleteLater();
     m_items.clear();
 
     m_items.append(copy->m_items);
     foreach (GoogleFeedItem* item, m_items)
         item->setChannel(this);
-    emit itemsChanged();
 
     copy->deleteLater();
+    emit itemsChanged();
 }
 
 QUrl GoogleFeedChannel::feedUrl()
@@ -64,6 +78,7 @@ QString GoogleFeedChannel::type()
 bool GoogleFeedChannel::isLoading()
 {
     if (!m_loaded) return false;
+    if (!m_request) return false;
     else return m_request->isLoading();
 }
 
@@ -77,28 +92,51 @@ QList<GoogleFeedItem*> GoogleFeedChannel::items()
     return m_items;
 }
 
+int GoogleFeedChannel::maxItems()
+{
+    return m_maxItems;
+}
+
+void GoogleFeedChannel::setMaxItems(int maxItems)
+{
+    if (maxItems == m_maxItems) return;
+    m_maxItems = maxItems;
+    refresh();
+    emit maxItemsChanged();
+}
+
 void GoogleFeedChannel::refresh()
 {
+    if (!m_api) { return; }
+    if (!m_feedUrl.isValid()) { return; }
     if (m_request) {
         disconnect(m_request);
         m_request->disconnect(this);
         m_request->cancel();
         m_request->deleteLater();
     }
-    m_request = m_api->getLoadRequest(m_feedUrl);
+    m_request = m_api->getLoadRequest(m_feedUrl, m_maxItems);
     connect(m_request, SIGNAL(responseReady(QJsonObject)),
             this, SLOT(onResponseReceived(QJsonObject)));
     m_request->send();
+    emit loadingChanged();
 }
 
 void GoogleFeedChannel::onResponseReceived(QJsonObject response)
 {
+    foreach (GoogleFeedItem* item, m_items)
+        item->deleteLater();
     m_items.clear();
+
     GoogleFeedChannel* channel = m_api->parseFeedChannel(response);
+
     m_items.append(channel->items());
+    foreach (GoogleFeedItem* item, channel->items())
+        item->setChannel(this);
     channel->deleteLater();
-    qDebug() << m_items.count();
+
     emit itemsChanged();
+    emit loadingChanged();
 }
 
 void GoogleFeedChannel::onError(QNetworkReply::NetworkError error, QString description)

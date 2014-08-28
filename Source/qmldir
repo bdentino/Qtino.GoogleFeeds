@@ -1,0 +1,4 @@
+module Qtino.GoogleFeeds
+plugin QtGoogleFeeds
+classname QtGoogleFeedsPlugin
+typeinfo plugins.qmltypes

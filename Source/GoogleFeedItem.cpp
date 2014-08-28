@@ -2,6 +2,7 @@
 #include "GoogleFeedChannel.h"
 
 #include <QJsonArray>
+#include <QDebug>
 
 GoogleFeedItem::GoogleFeedItem(GoogleFeedChannel* channel, QJsonObject item)
     : QObject(channel),
@@ -9,6 +10,7 @@ GoogleFeedItem::GoogleFeedItem(GoogleFeedChannel* channel, QJsonObject item)
 {
     m_link = retrieveLink(item);
     m_title = retrieveTitle(item);
+    m_author = retrieveAuthor(item);
     m_htmlContent = retrieveContent(item);
     m_contentSnippet = retrieveSnippet(item);
     m_publishedDate = retrievePublishedDate(item);
@@ -43,6 +45,19 @@ QString GoogleFeedItem::retrieveTitle(QJsonObject& item)
     {
         qWarning() << "GoogleFeedItem Warning: Could not parse title '"
                    << item["title"] << "' from link '" << item["link"] << "'"
+                   << "(feed: " << m_channel->feedUrl() << ")";
+        return QString();
+    }
+}
+
+QString GoogleFeedItem::retrieveAuthor(QJsonObject& item)
+{
+    if (item["author"].isString())
+        return item["author"].toString();
+    else
+    {
+        qWarning() << "GoogleFeedItem Warning: Could not parse author '"
+                   << item["author"] << "' from link '" << item["link"] << "'"
                    << "(feed: " << m_channel->feedUrl() << ")";
         return QString();
     }
@@ -84,8 +99,8 @@ QDateTime GoogleFeedItem::retrievePublishedDate(QJsonObject& item)
     }
     else
     {
-        qWarning() << "GoogleFeedItem Warning: Could not parse contentSnippet '"
-                   << item["contentSnippet"] << "' from link '" << item["link"] << "'"
+        qWarning() << "GoogleFeedItem Warning: Could not parse publishedDate '"
+                   << item["publishedDate"] << "' from link '" << item["link"] << "'"
                    << "(feed: " << m_channel->feedUrl() << ")";
         return QDateTime();
     }
@@ -127,9 +142,11 @@ QVariantList GoogleFeedItem::retrieveMediaGroups(QJsonObject& item)
         list << item["mediaGroups"].toObject().toVariantMap();
         return list;
     }
-
-    qWarning() << "GoogleFeedItem Warning: Could not parse mediaGroups '"
-               << item["mediaGroups"] << "' from link '" << item["link"] << "'"
-               << "(feed: " << m_channel->feedUrl() << ")";
+    else if (!item["mediaGroups"].isNull())
+    {
+        qWarning() << "GoogleFeedItem Warning: Could not parse mediaGroups '"
+                   << item["mediaGroups"] << "' from link '" << item["link"] << "'"
+                   << "(feed: " << m_channel->feedUrl() << ")";
+    }
     return QVariantList();
 }
