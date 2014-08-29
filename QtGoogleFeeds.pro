@@ -4,4 +4,4 @@ CONFIG += ordered
 
 SUBDIRS += Source \
            Examples/GoogleFeedsDemo \
-           GoogleFeedsQmlDemo
+           Examples/GoogleFeedsQmlDemo
